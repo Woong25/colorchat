@@ -1,0 +1,30 @@
+{
+  "name": "gif-chat",
+  "version": "1.0.0",
+  "description": "git chat service",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app"
+  },
+  "keywords": [
+    "socket"
+  ],
+  "author": "woong",
+  "license": "MIT",
+  "dependencies": {
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.4.5",
+    "dotenv": "^8.2.0",
+    "ejs": "^3.1.5",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "morgan": "^1.10.0",
+    "pug": "^3.0.0",
+    "socket.io": "^2.3.0",
+    "ws": "^7.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  }
+}

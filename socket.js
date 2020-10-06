@@ -51,7 +51,9 @@ module.exports = (server, app, sessionMiddleware) => {
                         console.error(err);
                     });
             }else{
-                room.emit('changeRoom', {roomId, userCount});
+                setTimeout(() => {
+                    room.emit('changeRoom', {roomId, userCount});
+                }, 300);
                 socket.to(roomId).emit('exit', {
                     user: 'system',
                     chat: `${req.session.color}님이 퇴장하셨습니다.`

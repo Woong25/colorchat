@@ -19,7 +19,7 @@
                 </tr>
                 </thead>
                 <tbody>  
-                <% if(typeof rooms != "undefined"){ %>
+                <% if(typeof rooms != "undefined" && rooms.length > 0 && rooms != ''){ %>
                   <% for(room of rooms){ %>
                       <tr data-id="<%= room._id %>" data-users="<%= allRooms[room._id].length %>" data-max="<%= room.max %>">
                           <td><%= room.title %></td>
@@ -39,7 +39,7 @@
                   }
               }else{
               %>
-              <tr>
+              <tr id="empty">
                   <td colspan="5">생성된 방이 없습니다.</td>
               </tr>
               <% } %>
@@ -51,52 +51,71 @@
         <script src="/socket.io/socket.io.js"></script>
         <script type="text/javascript">
             // 웹소켓 스크립트 부분
-            const socket = io.connect('http://10.41.37.149:8080/room', { // 네임스페이스
+            const SOCKET_HOST = '<%= process.env.SOCKET_HOST %>';
+            const socket = io.connect(SOCKET_HOST+'/room', { // 네임스페이스
                 path: '/socket.io',
             });
             socket.on('newRoom', function (data) { // 새 방 이벤트 시 새 방 생성
+                var element = document.getElementById('empty');
+                element.parentNode.removeChild(element);
+
                 const tr = document.createElement('tr');
+
                 let td = document.createElement('td');
-                td.textContent = data.title;
+                td.textContent = data.newRoom.title;
                 tr.appendChild(td);
                 td = document.createElement('td');
-                td.textContent = data.password ? '비밀방' : '공개방';
+                td.textContent = data.newRoom.password ? '비밀방' : '공개방';
                 tr.appendChild(td);
                 td = document.createElement('td');
-                td.textContent = data.max;
+                td.textContent = '1 / ' + data.newRoom.max;
                 tr.appendChild(td);
                 td = document.createElement('td');
-                td.style.color = data.owner;
-                td.textContent = data.owner;
+                td.style.color = data.newRoom.owner;
+                td.textContent = data.newRoom.owner;
                 tr.appendChild(td);
                 td = document.createElement('td');
                 const button = document.createElement('button');
                 button.textContent = '입장';
-                button.dataset.password = data.password ? 'true' : 'false';
-                button.dataset.id = data._id;
+                button.dataset.password = data.newRoom.password ? 'true' : 'false';
+                button.dataset.id = data.newRoom._id;
                 button.addEventListener('click', addBtnEvent);
                 td.appendChild(button);
                 tr.appendChild(td);
-                tr.dataset.id = data._id;
+                tr.dataset.id = data.newRoom._id;
+                tr.dataset.max = data.newRoom.max;
                 document.querySelector('table tbody').appendChild(tr); // 화면에 추가
             });
 
             socket.on('removeRoom', function (data) { // 방 제거 이벤트 시 id가 일치하는 방 제거
                 Array.prototype.forEach.call(document.querySelectorAll('tbody tr'), function(tr){
-                    if (tr.dataset.id === data) {
+                    if (tr.dataset.id === data.id) {
                         tr.parentNode.removeChild(tr);
                     }
                 });
+                if(!data.rooms || data.rooms == 0){
+                    if(document.querySelectorAll('#empty').length == 0){
+                        const tr = document.createElement('tr');
+                        const td = document.createElement('td');
+                        tr.id = 'empty';
+                        td.textContent = '생성된 방이 없습니다.';
+                        td.setAttribute('colspan', '5')
+                        tr.appendChild(td);
+                        document.querySelector('table tbody').appendChild(tr);
+                    }
+                }
             });
 
             socket.on('changeRoom', function(data){
                 console.log(data)
                 var tr = document.querySelector("tr[data-id='"+data.roomId+"']");
-                var max = tr.getAttribute('data-max')
-                var users = Number(data.userCount)
-                var count = users + ' / ' + max
-                console.log(count);
-                document.querySelector("tr[data-id='"+data.roomId+"'] td:nth-child(3)").textContent = count
+                var max = data.max ? data.max : tr.getAttribute('data-max')
+                console.log(max)
+                if(max){
+                    var users = Number(data.userCount)
+                    var count = users + ' / ' + max
+                    tr.querySelector("td:nth-child(3)").textContent = count
+                }
             });
 
             function addBtnEvent(e) { // 방 입장 클릭 시

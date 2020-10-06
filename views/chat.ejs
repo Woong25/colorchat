@@ -62,16 +62,21 @@
         <script src="/socket.io/socket.io.js"></script>
         <script type="text/javascript">
             // 웹소켓 스크립트 부분
-            const socket = io.connect('http://10.41.37.149:8080/chat', {
+            const SOCKET_HOST = '<%= process.env.SOCKET_HOST %>';
+            const socket = io.connect(SOCKET_HOST+'/chat', {
                 path: '/socket.io',
             });
+            var typingUser = [];
             socket.on('join', function (data) {
                 const div = document.createElement('div');
                 div.classList.add('system');
                 div.classList.add('chat-list');
                 const chat = document.createElement('div');
+                const date = document.createElement('span');
+                date.textContent = moment().format('h:mm A')
                 div.textContent = data.chat;
-                div.appendChild(chat);
+                //div.appendChild(chat);
+                div.appendChild(date);
                 document.querySelector('#chat-list .os-content').appendChild(div);
                 gotoBottom();
             });
@@ -80,8 +85,11 @@
                 div.classList.add('system');
                 div.classList.add('chat-list');
                 const chat = document.createElement('div');
+                const date = document.createElement('span');
+                date.textContent = moment().format('h:mm A')
                 div.textContent = data.chat;
-                div.appendChild(chat);
+                //div.appendChild(chat);
+                div.appendChild(date);
                 document.querySelector('#chat-list .os-content').appendChild(div);
                 gotoBottom();
             });
@@ -128,8 +136,56 @@
               div.appendChild(avatar);
               div.appendChild(content);
               document.querySelector('#chat-list .os-content').appendChild(div);
-              gotoBottom(100)
+              const chatHeight = instance.getState("contentScrollSize.height");
+              const chatViewHeight = instance.getState("hostSize.height");
+              const scrollY = instance.scroll().position.y
+              if (data.user === '<%=user%>' || scrollY+chatViewHeight == chatHeight) {
+                gotoBottom(100)
+              }
             })
+
+            socket.on('typing', function(data){
+              if(data.type == 'in'){
+                typingUser.unshift(data.user);
+              }else{
+                var index = typingUser.indexOf(data.user)
+                typingUser.splice(index, 1)
+              }
+              var myIndex = typingUser.indexOf('<%=user%>')
+              var typingList = JSON.parse(JSON.stringify(typingUser));
+              if(myIndex > -1){
+                typingList.splice(myIndex, 1);
+              }
+              console.log(typingList);
+              if(typingList.length > 0){
+                if(typingList.length < 3){
+                  var user = typingList.join(', ');
+                  var typing = document.createElement('div');
+
+                  if(document.querySelectorAll('#chat-form #typing').length > 0){
+                    document.querySelector('#chat-form #typing').textContent = user + ' 입력하는 중...';
+                  }else{
+                    typing.classList.add('typing');
+                    typing.id = 'typing';
+                    typing.textContent = user + ' 입력하는 중...';
+                    document.querySelector('#chat-form').appendChild(typing);
+                  }
+                }else{
+                  var user = typingList.slice(0, 2).join(', ');
+                  if(document.querySelectorAll('#chat-form #typing').length > 0){
+                    document.querySelector('#chat-form #typing').textContent = user + ' 외 '+(typingList.length-2)+ '명이 입력하는 중...';
+                  }else{
+                    typing.classList.add('typing');
+                    typing.id = 'typing';
+                    typing.textContent = user + ' 외 '+(typingList.length-2)+ '명이 입력하는 중...';
+                    document.querySelector('#chat-form').appendChild(typing);
+                  }
+                }
+              }else{
+                var typingElement = document.getElementById('typing');
+                typingElement.parentNode.removeChild(typingElement);
+              }
+            });
 
             document.querySelector('#chat-form').addEventListener('submit', function (e) {
               e.preventDefault();
@@ -186,16 +242,32 @@
 
             var textareaEl = document.getElementById('chat');
 
+            textareaEl.addEventListener('keyup', function(e) {
+              if(e.target.value.trim() && typingUser.indexOf('<%=user%>') === -1){
+                axios.get('/room/<%=room._id%>/typing')
+                .then(function(res){
+                  //console.log(res);
+                })
+              }
+
+              if(e.target.value.trim().length == 0){
+                axios.get('/room/<%=room._id%>/typing/remove')
+                .then(function(res){
+                  //console.log(res);
+                })
+              }
+            });
+            
             textareaEl.addEventListener('keypress', function(e) {
-                if(e.keyCode === 13 && e.shiftKey) {
-                  
-                  
-                }else if(e.keyCode === 13){
-                  e.preventDefault();
-                  if(e.target.value.trim()){
-                    commentSubmit(null, e)
-                  }
+              if(e.keyCode === 13 && e.shiftKey) {
+                
+                
+              }else if(e.keyCode === 13){
+                e.preventDefault();
+                if(e.target.value.trim()){
+                  commentSubmit(null, e)
                 }
+              }
             })
 
             // autosize(document.querySelector('textarea'));

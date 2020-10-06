@@ -38,8 +38,9 @@ router.post('/room', async (req, res, next) => {
             password: req.body.password,
         })
         const newRoom = await room.save();
+        const rooms = await Room.find({});
         const io = req.app.get('io');
-        io.of('/room').emit('newRoom', newRoom);
+        io.of('/room').emit('newRoom', {newRoom, rooms: rooms ? rooms.length : 0});
         res.redirect(`/room/${newRoom._id}?password=${req.body.password}`);
     } catch (error) {
         console.error(error);
@@ -66,7 +67,9 @@ router.get('/room/:id', async(req, res, next) => {
         }
         
         const chats = await Chat.find({ room: room._id }).sort('createdAt');
-        io.of('/room').emit('changeRoom', {roomId: room._id, userCount: rooms[req.params.id] ? rooms[req.params.id].length+1 : 1, max: room.max});
+        setTimeout(() => {
+            io.of('/room').emit('changeRoom', {roomId: room._id, userCount: rooms[req.params.id] ? rooms[req.params.id].length : 1, max: room.max});
+        }, 500);
         return res.render('chat', {
             moment,
             room,
@@ -81,14 +84,35 @@ router.get('/room/:id', async(req, res, next) => {
     }
 })
 
+router.get('/room/:id/typing', async(req, res, next) => {
+    const room = await Room.findOne({ _id: req.params.id });
+    const io = req.app.get('io');
+    if(!room){
+        return res.redirect('/')
+    }
+    io.of('/chat').to(req.params.id).emit('typing', {user: req.session.color, type: 'in'})
+    res.send(req.session.color + ' typing')
+});
+
+router.get('/room/:id/typing/remove', async(req, res, next) => {
+    const room = await Room.findOne({ _id: req.params.id });
+    const io = req.app.get('io');
+    if(!room){
+        return res.redirect('/')
+    }
+    io.of('/chat').to(req.params.id).emit('typing', {user: req.session.color, type: 'out'})
+    res.send(req.session.color + ' typing')
+});
+
 router.delete('/room/:id', async(req, res, next) => {
     try {
         await Room.remove({ _id: req.params.id })
         await Chat.remove({ room: req.params.id })
+        const rooms = await Room.find({});
         res.send('ok');
 
         setTimeout(() => {
-            req.app.get('io').of('/room').emit('removeRoom', req.params.id);
+            req.app.get('io').of('/room').emit('removeRoom', {id: req.params.id, rooms: rooms ? rooms.length : 0});
         }, 2000);
 
     } catch (error) {

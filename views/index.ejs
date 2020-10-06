@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html lang="ko">
+    <%- include('./head') %>
+    <body>
+        <%- include('./header') %>
+        <div class="inner">
+            <% if(typeof error != "undefined" && error.length > 0){ %>
+                <div class="error-message"><%= error %></div>
+            <% } %>
+            <table>
+                <thead>
+                <tr>
+                  <th>방 제목</th>
+                  <th>종류</th>
+                  <th>인원</th>
+                  <th>방장</th>
+                  <th>입장</th>
+                </tr>
+                </thead>
+                <tbody>  
+                <% if(typeof rooms != "undefined"){ %>
+                  <% for(room of rooms){ %>
+                      <tr data-id="<%= room._id %>" data-users="<%= allRooms[room._id].length %>" data-max="<%= room.max %>">
+                          <td><%= room.title %></td>
+                          <td><%= room.password ? '비밀방' : '공개방' %></td>
+                          <td><%= allRooms[room._id].length %> / <%= room.max %></td>
+                          <td style="color: <%= room.owner %>"><%= room.owner %></td>
+                          <td>
+                              <button
+                              data-password="<%= room.password ? 'true' : 'false' %>"
+                              data-id="<%= room._id %>"
+                              class="join-btn"
+                              >입장
+                              </button>
+                          </td>
+                      </tr>
+              <% 
+                  }
+              }else{
+              %>
+              <tr>
+                  <td colspan="5">생성된 방이 없습니다.</td>
+              </tr>
+              <% } %>
+
+                </tbody>
+            </table>  
+            <a href="/room">채팅방 생성</a>
+        </div>
+        <script src="/socket.io/socket.io.js"></script>
+        <script type="text/javascript">
+            // 웹소켓 스크립트 부분
+            const socket = io.connect('http://10.41.37.149:8080/room', { // 네임스페이스
+                path: '/socket.io',
+            });
+            socket.on('newRoom', function (data) { // 새 방 이벤트 시 새 방 생성
+                const tr = document.createElement('tr');
+                let td = document.createElement('td');
+                td.textContent = data.title;
+                tr.appendChild(td);
+                td = document.createElement('td');
+                td.textContent = data.password ? '비밀방' : '공개방';
+                tr.appendChild(td);
+                td = document.createElement('td');
+                td.textContent = data.max;
+                tr.appendChild(td);
+                td = document.createElement('td');
+                td.style.color = data.owner;
+                td.textContent = data.owner;
+                tr.appendChild(td);
+                td = document.createElement('td');
+                const button = document.createElement('button');
+                button.textContent = '입장';
+                button.dataset.password = data.password ? 'true' : 'false';
+                button.dataset.id = data._id;
+                button.addEventListener('click', addBtnEvent);
+                td.appendChild(button);
+                tr.appendChild(td);
+                tr.dataset.id = data._id;
+                document.querySelector('table tbody').appendChild(tr); // 화면에 추가
+            });
+
+            socket.on('removeRoom', function (data) { // 방 제거 이벤트 시 id가 일치하는 방 제거
+                Array.prototype.forEach.call(document.querySelectorAll('tbody tr'), function(tr){
+                    if (tr.dataset.id === data) {
+                        tr.parentNode.removeChild(tr);
+                    }
+                });
+            });
+
+            socket.on('changeRoom', function(data){
+                console.log(data)
+                var tr = document.querySelector("tr[data-id='"+data.roomId+"']");
+                var max = tr.getAttribute('data-max')
+                var users = Number(data.userCount)
+                var count = users + ' / ' + max
+                console.log(count);
+                document.querySelector("tr[data-id='"+data.roomId+"'] td:nth-child(3)").textContent = count
+            });
+
+            function addBtnEvent(e) { // 방 입장 클릭 시
+                if (e.target.dataset.password === 'true') {
+                const password = prompt('비밀번호를 입력하세요');
+                location.href = '/room/' + e.target.dataset.id + '?password=' + password;
+                } else {
+                location.href = '/room/' + e.target.dataset.id;
+                }
+            }
+            Array.prototype.forEach.call(document.querySelectorAll('.join-btn'), function(btn){
+                btn.addEventListener('click', addBtnEvent);
+            });
+        </script>
+    </body>
+</html>

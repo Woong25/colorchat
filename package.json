@@ -1,7 +1,7 @@
 {
-  "name": "gif-chat",
+  "name": "color-chat",
   "version": "1.0.0",
-  "description": "git chat service",
+  "description": "color chat service",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -13,13 +13,18 @@
   "author": "woong",
   "license": "MIT",
   "dependencies": {
+    "axios": "^0.20.0",
+    "color-hash": "^1.0.3",
     "connect-flash": "^0.1.1",
     "cookie-parser": "^1.4.5",
     "dotenv": "^8.2.0",
     "ejs": "^3.1.5",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
+    "moment": "^2.29.0",
+    "mongoose": "^5.10.7",
     "morgan": "^1.10.0",
+    "multer": "^1.4.2",
     "pug": "^3.0.0",
     "socket.io": "^2.3.0",
     "ws": "^7.3.1"

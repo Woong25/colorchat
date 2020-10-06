@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html lang="ko">
+    <%- include('./head') %>
+    <body>
+        <%- include('./header') %>
+        <div class="inner chat">
+            <div id="chat-list">
+                <% for(chat of chats){ %>
+                  <% if(chat.user === user){ %>
+                    <div class="chat-list mine" style="color: <%= chat.user %>">
+                      <div class="avatar" style="background: <%= chat.user %>"><span>me</spa></div>
+                      <div class="content">
+                        <div class="name">
+                          <%= chat.user %><span><%= moment(chat.createdAt).format('h:mm:ss A'); %></span>
+                        </div>
+                        <% if (chat.gif){ %>}
+                          <img class="gif" src="/assets/images/gif/<%= chat.gif %>">
+                        <% }else{ %>
+                          <div class="chat"><%= chat.chat %></div>
+                        <% } %>
+                      </div>
+                    </div>
+                  <% }else if (chat.user === 'system'){ %>
+                    <div class="chat-list system">
+                      <div><%= chat.chat %></div>
+                    </div>
+                  <% }else{ %>
+                    <div class="chat-list other" style="color: <%= chat.user %>">
+                      <div class="avatar" style="background: <%= chat.user %>"></div>
+                      <div class="content">
+                        <div class="name">
+                          <%= chat.user %><span><%= moment(chat.createdAt).format('h:mm A'); %></span>
+                        </div>
+                        <% if(chat.gif){ %>
+                          <img class="gif" src="/assets/images/gif/<%= chat.gif %>">
+                        <% }else{ %>
+                          <div class="chat"><%= chat.chat.trim() %></div>
+                        <% } %>
+                      </div>
+                    </div>
+                  <% } %>
+                <% } %>
+            </div>
+            <form action="/chat" id="chat-form" method="post" enctype="multipart/form-data">
+                <!-- <label for="gif">GIF 올리기</label>
+                <input type="file" id="gif" name="gif" accept="image/gif"> -->
+                <textarea id="chat" name="chat" rows="2" placeholder="'<%=title%>' 방에 채팅 입력" required></textarea>
+                <div class="btns">
+                  <button type="button"><i class="xi-image-o"></i></button>
+                  <button type="submit"><i class="xi-send"></i></button>
+                </div>
+            </form>
+            <!-- <a href="/">나가기</a> -->
+        </div>
+        <!-- <script src="https://cdn.jsdelivr.net/npm/autosize@4.0.2/dist/autosize.min.js"></script> -->
+        <script src="https://cdn.jsdelivr.net/npm/promise-polyfill@8/dist/polyfill.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/overlayscrollbars/1.13.0/css/OverlayScrollbars.css" integrity="sha512-vE1vuJehUqVW9CvtimaOOJ+vgfv5o/d5Z7uBorSX5ASYxi18F3wO7H+IK0G2i5TqHCwQ/XOZGXzx3dne9a9AhA==" crossorigin="anonymous" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/overlayscrollbars/1.13.0/js/OverlayScrollbars.min.js" integrity="sha512-5R3ngaUdvyhXkQkIqTf/k+Noq3phjmrqlUQyQYbgfI34Mzcx7vLIIYTy/K1VMHkL33T709kfh5y6R9Xy/Cbt7Q==" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.0/moment.min.js" integrity="sha512-Izh34nqeeR7/nwthfeE0SI3c8uhFSnqxV0sI9TvTcXiFJkMd6fB644O64BRq2P/LA/+7eRvCw4GmLsXksyTHBg==" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script type="text/javascript">
+            // 웹소켓 스크립트 부분
+            const socket = io.connect('http://10.41.37.149:8080/chat', {
+                path: '/socket.io',
+            });
+            socket.on('join', function (data) {
+                const div = document.createElement('div');
+                div.classList.add('system');
+                div.classList.add('chat-list');
+                const chat = document.createElement('div');
+                div.textContent = data.chat;
+                div.appendChild(chat);
+                document.querySelector('#chat-list .os-content').appendChild(div);
+                gotoBottom();
+            });
+            socket.on('exit', function (data) {
+                const div = document.createElement('div');
+                div.classList.add('system');
+                div.classList.add('chat-list');
+                const chat = document.createElement('div');
+                div.textContent = data.chat;
+                div.appendChild(chat);
+                document.querySelector('#chat-list .os-content').appendChild(div);
+                gotoBottom();
+            });
+            socket.on('chat', function(data){
+              const div = document.createElement('div');
+              const content = document.createElement('div');
+              const avatar = document.createElement('div');
+              const name = document.createElement('div');
+              const date = document.createElement('span');
+
+              content.classList.add('content');
+              avatar.classList.add('avatar');
+              avatar.style.background = data.user
+              name.classList.add('name');
+              date.textContent = moment(data.createdAt).format('h:mm A')
+
+              div.classList.add('chat-list')
+              if (data.user === '<%=user%>') {
+                div.classList.add('mine');
+
+                // me 텍스트 추가
+                const mine = document.createElement('span');
+                mine.textContent = 'me';
+                avatar.appendChild(mine);
+              } else {
+                div.classList.add('other');
+              }
+
+              
+              name.textContent = data.user;
+              name.appendChild(date);
+              content.appendChild(name);
+              if (data.chat) {
+                const chat = document.createElement('div');
+                chat.textContent = data.chat;
+                chat.classList.add('chat')
+                content.appendChild(chat);
+              } else {
+                const gif = document.createElement('img');
+                gif.src = '/gif/' + data.gif;
+                content.appendChild(gif);
+              }
+              //div.style.color = data.user;
+              div.appendChild(avatar);
+              div.appendChild(content);
+              document.querySelector('#chat-list .os-content').appendChild(div);
+              gotoBottom(100)
+            })
+
+            document.querySelector('#chat-form').addEventListener('submit', function (e) {
+              e.preventDefault();
+              if (e.target.chat.value.trim()) {
+                commentSubmit(this, e);
+              }
+            });
+
+            document.getElementById("chat").addEventListener('focus', function(e){
+              document.getElementById("chat-form").classList.add('focus')
+            })
+
+            document.getElementById("chat").addEventListener('blur', function(e){
+              if(!e.target.value){
+                document.getElementById("chat-form").classList.remove('focus')
+              }
+            })
+
+            document.getElementById("chat").addEventListener('keyup', function(e){
+              if(!e.target.value){
+                document.getElementById("chat-form").classList.remove('focus')
+              }else{
+                document.getElementById("chat-form").classList.add('focus')
+              }
+            })
+            
+              
+            var instance = OverlayScrollbars(document.getElementById('chat-list'), { /* your options */ }); 
+            var textarea = OverlayScrollbars(document.getElementById('chat'), { /* your options */ }); 
+
+            function gotoBottom(time){
+              instance.scroll({ y : "100%" }, time ? time : 0);
+            }
+
+            function commentSubmit(This, e){
+              axios.post('/room/<%=room._id%>/chat', {
+                chat: This ? This.chat.value : e.target.value,
+              })
+              .then(function(){
+                if(This){
+                  e.target.chat.value = '';
+                }else{
+                  e.target.value = '';
+                } 
+                //gotoBottom(100);
+                //document.getElementById("chat-form").reset();
+              })
+              .catch(function(err){
+                console.error(err);
+              });
+            }
+
+            gotoBottom()
+
+            var textareaEl = document.getElementById('chat');
+
+            textareaEl.addEventListener('keypress', function(e) {
+                if(e.keyCode === 13 && e.shiftKey) {
+                  
+                  
+                }else if(e.keyCode === 13){
+                  e.preventDefault();
+                  if(e.target.value.trim()){
+                    commentSubmit(null, e)
+                  }
+                }
+            })
+
+            // autosize(document.querySelector('textarea'));
+        </script>
+    </body>
+</html>

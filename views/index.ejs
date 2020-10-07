@@ -19,12 +19,12 @@
                 </tr>
                 </thead>
                 <tbody>  
-                <% if(typeof rooms != "undefined" && rooms.length > 0 && rooms != ''){ %>
+                <% if(typeof rooms != "undefined" && (rooms && rooms.length > 0) && rooms != ''){ %>
                   <% for(room of rooms){ %>
-                      <tr data-id="<%= room._id %>" data-users="<%= allRooms[room._id].length %>" data-max="<%= room.max %>">
+                      <tr data-id="<%= room._id %>" data-users="<%= allRooms[room._id] ? allRooms[room._id].length : 0 %>" data-max="<%= room.max %>">
                           <td><%= room.title %></td>
                           <td><%= room.password ? '비밀방' : '공개방' %></td>
-                          <td><%= allRooms[room._id].length %> / <%= room.max %></td>
+                          <td><%= allRooms[room._id] ? allRooms[room._id].length : 0 %> / <%= room.max %></td>
                           <td style="color: <%= room.owner %>"><%= room.owner %></td>
                           <td>
                               <button
@@ -51,7 +51,7 @@
         <script src="/socket.io/socket.io.js"></script>
         <script type="text/javascript">
             // 웹소켓 스크립트 부분
-            const SOCKET_HOST = '<%= process.env.SOCKET_HOST %>';
+            const SOCKET_HOST = '<%= process.env.SOCKET_HOST %>' || 'http://localhost:8080';
             const socket = io.connect(SOCKET_HOST+'/room', { // 네임스페이스
                 path: '/socket.io',
             });

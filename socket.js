@@ -1,5 +1,7 @@
 const axios = require('axios');
 const SocketIO = require('socket.io');
+const cookie = require('cookie-signature');
+const cookieParser = require('cookie-parser');
 
 module.exports = (server, app, sessionMiddleware) => {
     const io = SocketIO(server, { path: '/socket.io' });
@@ -12,6 +14,7 @@ module.exports = (server, app, sessionMiddleware) => {
 
     // 익스프레스 미들웨어를 소켓IO에서 쓰는 방법
     io.use((socket, next) => { 
+        cookieParser(process.env.COOKIE_SECRET)(socket.request, socket.request.res, next);
         sessionMiddleware(socket.request, socket.request.res, next);
     });
 
@@ -30,10 +33,26 @@ module.exports = (server, app, sessionMiddleware) => {
 
         socket.join(roomId); // 방에 접속
 
-        socket.to(roomId).emit('join', {
-            user: 'system',
-            chat: `${req.session.color}님이 입장하셨습니다.`,
-        });
+        let roomUser = socket.to(roomId).adapter.users || []
+        let newUser = [...roomUser, req.session.color]
+        newUser = [...new Set(newUser)].filter(item => item)
+        socket.to(roomId).adapter.users = newUser;
+        console.log(newUser)
+
+        // socket.to(roomId).emit('join', {
+        //     user: 'system',
+        //     chat: `${req.session.color}님이 입장하셨습니다.`,
+        //     users: newUser,
+        // });
+        const signedCookie = cookie.sign(req.signedCookies['connect.sid'], process.env.COOKIE_SECRET);
+        const connectSID = `${signedCookie}`;
+        axios.post(`http://localhost:8080/room/${roomId}/sys`, {
+            type: 'join'
+        }, {
+            headers: {
+                Cookie: `connect.sid=s%3A${connectSID}`
+            }
+        })
 
         socket.on('disconnect', () => {
             console.log('chat 네임스페이스 접속 해제');
@@ -54,9 +73,16 @@ module.exports = (server, app, sessionMiddleware) => {
                 setTimeout(() => {
                     room.emit('changeRoom', {roomId, userCount});
                 }, 300);
-                socket.to(roomId).emit('exit', {
-                    user: 'system',
-                    chat: `${req.session.color}님이 퇴장하셨습니다.`
+                // socket.to(roomId).emit('exit', {
+                //     user: 'system',
+                //     chat: `${req.session.color}님이 퇴장하셨습니다.`
+                // })
+                axios.post(`http://localhost:8080/room/${roomId}/sys`, {
+                    type: 'exit'
+                }, {
+                    headers: {
+                        Cookie: `connect.sid=s%3A${connectSID}`
+                    }
                 })
             }
         })

@@ -5,68 +5,93 @@
     <body>
         <%- include('./header') %>
         <div class="inner chat">
-            <div id="chat-list">
-                <% for(chat of chats){ %>
-                  <% if(chat.user === user){ %>
-                    <div class="chat-list mine" style="color: <%= chat.user %>">
-                      <div class="avatar" style="background: <%= chat.user %>"><span>me</spa></div>
-                      <div class="content">
-                        <div class="name">
-                          <%= chat.user %><span><%= moment(chat.createdAt).format('h:mm:ss A'); %></span>
-                        </div>
-                        <% if (chat.gif){ %>}
-                          <img class="gif" src="/assets/images/gif/<%= chat.gif %>">
-                        <% }else{ %>
-                          <div class="chat"><%= chat.chat %></div>
-                        <% } %>
-                      </div>
-                    </div>
-                  <% }else if (chat.user === 'system'){ %>
-                    <div class="chat-list system">
-                      <div><%= chat.chat %></div>
-                    </div>
-                  <% }else{ %>
-                    <div class="chat-list other" style="color: <%= chat.user %>">
-                      <div class="avatar" style="background: <%= chat.user %>"></div>
-                      <div class="content">
-                        <div class="name">
-                          <%= chat.user %><span><%= moment(chat.createdAt).format('h:mm A'); %></span>
-                        </div>
-                        <% if(chat.gif){ %>
-                          <img class="gif" src="/assets/images/gif/<%= chat.gif %>">
-                        <% }else{ %>
-                          <div class="chat"><%= chat.chat.trim() %></div>
-                        <% } %>
-                      </div>
-                    </div>
-                  <% } %>
-                <% } %>
+          <div class="chat-box state">
+            <div class="user-scroll">
+              <ul>
+                <li></li>
+              </ul>
             </div>
-            <form action="/chat" id="chat-form" method="post" enctype="multipart/form-data">
-                <!-- <label for="gif">GIF 올리기</label>
-                <input type="file" id="gif" name="gif" accept="image/gif"> -->
-                <textarea id="chat" name="chat" rows="2" placeholder="'<%=title%>' 방에 채팅 입력" required></textarea>
-                <div class="btns">
-                  <button type="button"><i class="xi-image-o"></i></button>
-                  <button type="submit"><i class="xi-send"></i></button>
+            <div class="chat-scroll">
+                <!-- <div id="new-chat">새로운 채팅 보기 <i class="xi-angle-down-min"></i></div> -->
+                <div id="chat-list">
+                    <% for(chat of chats){ %>
+                      <% if(chat.user === user){ %>
+                        <div class="chat-list mine" style="color: <%= chat.user %>">
+                          <div class="avatar" style="background: <%= chat.user %>"><span>me</spa></div>
+                          <div class="content">
+                            <div class="name">
+                              <%= chat.user %><span><%= moment(chat.createdAt).format('h:mm:ss A'); %></span>
+                            </div>
+                            <% if (chat.gif || chat.chat){ %>
+                              <% if(chat.chat){ %>
+                                <div class="chat"><%- chat.chat.trim().replace(/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/|www\.)?([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6}(:[0-9]{1,5})?(\/.*)?$)?/gm, '<a href="//$2" target="_blank">$1$2</a>') %></div>
+                              <% } %>
+                              <% if(chat.gif){ %>
+                                <img class="file" src="/file/<%= room._id %>/<%= chat.gif %>" height="450">
+                              <% } %>
+                            <% } %>
+                          </div>
+                        </div>
+                      <% }else if (chat.user === 'system'){ %>
+                        <div class="chat-list system">
+                          <div><%= chat.chat.replace(user, '회원') %><span><%= moment(chat.createdAt).format('h:mm A'); %></span></div>
+                        </div>
+                      <% }else{ %>
+                        <div class="chat-list other" style="color: <%= chat.user %>">
+                          <div class="avatar" style="background: <%= chat.user %>"></div>
+                          <div class="content">
+                            <div class="name">
+                              <%= chat.user %><span><%= moment(chat.createdAt).format('h:mm A'); %></span>
+                            </div>
+                            <% if (chat.gif || chat.chat){ %>
+                              <% if(chat.chat){ %>
+                                <div class="chat"><%- chat.chat.trim().replace(/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/|www\.)?([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6}(:[0-9]{1,5})?(\/.*)?$)?/gm, '<a href="//$2" target="_blank">$1$2</a>') %></div>
+                              <% } %>
+                              <% if(chat.gif){ %>
+                                <img class="file" src="/file/<%= room._id %>/<%= chat.gif %>" height="450">
+                              <% } %>
+                            <% } %>
+                          </div>
+                        </div>
+                      <% } %>
+                    <% } %>
                 </div>
-            </form>
-            <!-- <a href="/">나가기</a> -->
+              </div>
+              <form action="/chat" id="chat-form" method="post" enctype="multipart/form-data" class="focus">
+                  <textarea id="chat" name="chat" rows="2" placeholder="'<%=title%>' 방에 채팅 입력" required></textarea>
+                  <div class="btns">
+                    <button type="button">
+                      <input type="file" id="file" name="file" accept="image/*">
+                      <label for="file"><i class="xi-image-o"></i></label>
+                    </button>
+                    <button type="submit"><i class="xi-send"></i></button>
+                  </div>
+              </form>
+              <!-- <a href="/">나가기</a> -->
+          </div>
         </div>
         <!-- <script src="https://cdn.jsdelivr.net/npm/autosize@4.0.2/dist/autosize.min.js"></script> -->
         <script src="https://cdn.jsdelivr.net/npm/promise-polyfill@8/dist/polyfill.min.js"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/overlayscrollbars/1.13.0/css/OverlayScrollbars.css" integrity="sha512-vE1vuJehUqVW9CvtimaOOJ+vgfv5o/d5Z7uBorSX5ASYxi18F3wO7H+IK0G2i5TqHCwQ/XOZGXzx3dne9a9AhA==" crossorigin="anonymous" />
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/overlayscrollbars/1.13.0/js/OverlayScrollbars.min.js" integrity="sha512-5R3ngaUdvyhXkQkIqTf/k+Noq3phjmrqlUQyQYbgfI34Mzcx7vLIIYTy/K1VMHkL33T709kfh5y6R9Xy/Cbt7Q==" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.0/moment.min.js" integrity="sha512-Izh34nqeeR7/nwthfeE0SI3c8uhFSnqxV0sI9TvTcXiFJkMd6fB644O64BRq2P/LA/+7eRvCw4GmLsXksyTHBg==" crossorigin="anonymous"></script>
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/overlayscrollbars/1.13.0/js/OverlayScrollbars.min.js" integrity="sha512-5R3ngaUdvyhXkQkIqTf/k+Noq3phjmrqlUQyQYbgfI34Mzcx7vLIIYTy/K1VMHkL33T709kfh5y6R9Xy/Cbt7Q==" crossorigin="anonymous"></script>
         <script src="/socket.io/socket.io.js"></script>
         <script type="text/javascript">
+
+            console.log(`<%=users%>`)
+
             // 웹소켓 스크립트 부분
-            const SOCKET_HOST = '<%= process.env.SOCKET_HOST %>';
-            const socket = io.connect(SOCKET_HOST+'/chat', {
+            var SOCKET_HOST = '<%= process.env.SOCKET_HOST %>' || 'http://localhost:8080';
+            var socket = io.connect(SOCKET_HOST+'/chat', {
                 path: '/socket.io',
+                upgrade: false
             });
             var typingUser = [];
+            var instance = OverlayScrollbars(document.getElementById('chat-list'), { /* your options */ }); 
+            var textarea = OverlayScrollbars(document.getElementById('chat'), { /* your options */ }); 
+            var image = null;
+
             socket.on('join', function (data) {
                 const div = document.createElement('div');
                 div.classList.add('system');
@@ -74,7 +99,7 @@
                 const chat = document.createElement('div');
                 const date = document.createElement('span');
                 date.textContent = moment().format('h:mm A')
-                div.textContent = data.chat;
+                div.textContent = data.chat.replace('<%=user%>', '회원');
                 //div.appendChild(chat);
                 div.appendChild(date);
                 document.querySelector('#chat-list .os-content').appendChild(div);
@@ -87,7 +112,7 @@
                 const chat = document.createElement('div');
                 const date = document.createElement('span');
                 date.textContent = moment().format('h:mm A')
-                div.textContent = data.chat;
+                div.textContent = data.chat.replace('<%=user%>', '회원');
                 //div.appendChild(chat);
                 div.appendChild(date);
                 document.querySelector('#chat-list .os-content').appendChild(div);
@@ -124,12 +149,15 @@
               content.appendChild(name);
               if (data.chat) {
                 const chat = document.createElement('div');
-                chat.textContent = data.chat;
+                chat.innerHTML = data.chat.replace(/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/|www\.)?([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6}(:[0-9]{1,5})?(\/.*)?$)?/gm, '<a href="//$2" target="_blank">$1$2</a>');
                 chat.classList.add('chat')
                 content.appendChild(chat);
-              } else {
+              } 
+              if(data.gif) {
                 const gif = document.createElement('img');
-                gif.src = '/gif/' + data.gif;
+                gif.setAttribute('height', '450')
+                gif.src = '/file/<%= room._id %>/' + data.gif;
+                gif.classList.add('file')
                 content.appendChild(gif);
               }
               //div.style.color = data.user;
@@ -139,11 +167,12 @@
               const chatHeight = instance.getState("contentScrollSize.height");
               const chatViewHeight = instance.getState("hostSize.height");
               const scrollY = instance.scroll().position.y
-              if (data.user === '<%=user%>' || scrollY+chatViewHeight == chatHeight) {
+              if (data.user === '<%=user%>' || (scrollY+chatViewHeight) > chatHeight - 50) {
                 gotoBottom(100)
+              }else{
+
               }
             })
-
             socket.on('typing', function(data){
               if(data.type == 'in'){
                 typingUser.unshift(data.user);
@@ -183,7 +212,9 @@
                 }
               }else{
                 var typingElement = document.getElementById('typing');
-                typingElement.parentNode.removeChild(typingElement);
+                if(typingElement){
+                  typingElement.parentNode.removeChild(typingElement);
+                }
               }
             });
 
@@ -194,54 +225,31 @@
               }
             });
 
-            document.getElementById("chat").addEventListener('focus', function(e){
-              document.getElementById("chat-form").classList.add('focus')
-            })
-
-            document.getElementById("chat").addEventListener('blur', function(e){
-              if(!e.target.value){
-                document.getElementById("chat-form").classList.remove('focus')
-              }
-            })
-
-            document.getElementById("chat").addEventListener('keyup', function(e){
-              if(!e.target.value){
-                document.getElementById("chat-form").classList.remove('focus')
-              }else{
-                document.getElementById("chat-form").classList.add('focus')
-              }
-            })
-            
-              
-            var instance = OverlayScrollbars(document.getElementById('chat-list'), { /* your options */ }); 
-            var textarea = OverlayScrollbars(document.getElementById('chat'), { /* your options */ }); 
-
-            function gotoBottom(time){
-              instance.scroll({ y : "100%" }, time ? time : 0);
-            }
-
-            function commentSubmit(This, e){
-              axios.post('/room/<%=room._id%>/chat', {
-                chat: This ? This.chat.value : e.target.value,
-              })
-              .then(function(){
-                if(This){
-                  e.target.chat.value = '';
-                }else{
+            document.querySelector('#file').addEventListener('change', function (e) {
+              console.log(e.target.files);
+              const formData = new FormData();
+              formData.append('file', e.target.files[0]);
+              axios.post('/room/<%=room._id%>/file', formData)
+                .then((res) => {
+                  e.target.file = null;
                   e.target.value = '';
-                } 
-                //gotoBottom(100);
-                //document.getElementById("chat-form").reset();
-              })
-              .catch(function(err){
-                console.error(err);
-              });
-            }
+                  console.log(res.data);
+                  const form = document.querySelector('#chat-form');
+                  const uploaded = document.createElement('div');
 
-            gotoBottom()
-
+                  uploaded.id = 'uploaded';
+                  uploaded.setAttribute('class', 'uploaded');
+                  uploaded.style.backgroundImage = "url('/file/<%=room._id%>/"+res.data+"')";
+                  form.classList.add('file');
+                  form.appendChild(uploaded);
+                  image = res.data
+                })
+                .catch((err) => {
+                  console.error(err);
+                });
+            });
+            
             var textareaEl = document.getElementById('chat');
-
             textareaEl.addEventListener('keyup', function(e) {
               if(e.target.value.trim() && typingUser.indexOf('<%=user%>') === -1){
                 axios.get('/room/<%=room._id%>/typing')
@@ -270,7 +278,53 @@
               }
             })
 
-            // autosize(document.querySelector('textarea'));
+            function gotoBottom(time){
+              instance.scroll({ y : "100%" }, time ? time : 0);
+            }
+
+            function commentSubmit(This, e){
+              axios.post('/room/<%=room._id%>/chat', {
+                chat: This ? This.chat.value : e.target.value,
+                file: image
+              })
+              .then(function(){
+                var uploaded = document.getElementById('uploaded');
+                if(uploaded){
+                  uploaded.parentNode.removeChild(uploaded);
+                  document.querySelector('#chat-form').classList.remove('file');
+                  image = null;
+                }
+                if(This){
+                  e.target.chat.value = '';
+                }else{
+                  e.target.value = '';
+                } 
+                //gotoBottom(100);
+                //document.getElementById("chat-form").reset();
+              })
+              .catch(function(err){
+                console.error(err);
+              });
+            }
+            gotoBottom()
+
+            // document.getElementById("chat").addEventListener('focus', function(e){
+            //   document.getElementById("chat-form").classList.add('focus')
+            // })
+
+            // document.getElementById("chat").addEventListener('blur', function(e){
+            //   if(!e.target.value){
+            //     document.getElementById("chat-form").classList.remove('focus')
+            //   }
+            // })
+
+            // document.getElementById("chat").addEventListener('keyup', function(e){
+            //   if(!e.target.value){
+            //     document.getElementById("chat-form").classList.remove('focus')
+            //   }else{
+            //     document.getElementById("chat-form").classList.add('focus')
+            //   }
+            // })
         </script>
     </body>
 </html>

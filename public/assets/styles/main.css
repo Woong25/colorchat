@@ -77,7 +77,11 @@ header ul{float: right}
 .create-room input:focus{outline: none;}
 .create-room button{width: 100%; margin-top: 25px; border: 0; border-radius: 2px; padding: 10px 0; font-size: 16px; cursor: pointer; font-weight: 600;}
 
-#chat-list{margin-top: -30px; height: calc(100vh - 180px);}
+.chat-box{width: 100%;}
+.chat-box.state{width: 65%; float: right; transition: width .2s;}
+.chat-box.state #chat-list .chat-list .content .file{max-height: 250px !important;}
+
+#chat-list{height: calc(100vh - 180px);}
 #chat-list .system{text-align: center; color: #ac033c;}
 #chat-list .system span{color: #9e9e9e !important; font-weight: 400; font-size: 12px; margin-left: 7px; vertical-align: middle;}
 #chat-list .chat-list{width: 100%; margin: 10px 0; display: block; overflow: hidden;}
@@ -87,9 +91,13 @@ header ul{float: right}
 #chat-list .chat-list .content .name{margin-top: 4px; color: #eee; font-weight: 600;}
 #chat-list .chat-list .content .name > span{color: #9e9e9e !important; font-weight: 400; font-size: 12px; margin-left: 7px; vertical-align: middle;}
 #chat-list .chat-list .content .chat{margin-top: 7px; white-space: pre-line; line-height: 22px; color: #ccc}
+#chat-list .chat-list .content .file{max-height: 450px !important; border-radius: 4px; margin-top: 7px; background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKAQMAAAC3/F3+AAAACXBIWXMAAAsTAAALEwEAmpwYAAAABlBMVEXf39////8zI3BgAAAAEUlEQVQIW2Nk38mIjH5wICMAez4Iyz2C/F8AAAAASUVORK5CYII=) repeat;}
 
-.inner.chat{position: relative; height: calc(100vh - 60px);}
-.inner.chat form{position: absolute; border: 2px solid #313131; border-radius: 4px; bottom: 20px; left: 20px; width: calc(100% - 40px); overflow: hidden; font-size: 0; height: 100px; padding: 7px; background: #121212; z-index: 3}
+.chat-scroll{position: relative;}
+.chat-scroll #new-chat{position: absolute; bottom: 0; left: 0; text-align: center; z-index: 1; width: 100%; margin-bottom: 10px; background: rgb(49, 49, 49, .6); padding: 9px 0; border-radius: 4px; cursor: pointer;}
+.chat-scroll #new-chat i{vertical-align: -3px; font-size: 20px;}
+.inner.chat{position: relative; height: calc(100vh - 60px); margin-top: -30px;}
+.inner.chat form{position: relative; border: 2px solid #313131; border-radius: 4px; width: 100%; overflow: hidden; font-size: 0; height: 100px; padding: 7px; background: #121212; z-index: 3}
 .inner.chat form textarea{width: 100%; background: transparent; border: 0; resize: none; color: #eee; padding: 15px; font-size: 14px; line-height: 22px; padding: 10px;}
 .inner.chat form textarea:hover{border-color: #363636}
 .inner.chat form.focus{outline: none; border-color: #555}
@@ -97,6 +105,18 @@ header ul{float: right}
 .inner.chat form.focus .btns{bottom: 8px}
 .inner.chat form .btns button{vertical-align: middle; display: inline-block; border: none; margin: 0; padding: 0; width: auto; overflow: visible; background: transparent; color: inherit; font: inherit; line-height: normal; -webkit-font-smoothing: inherit; -moz-osx-font-smoothing: inherit; -webkit-appearance: none; text-align: inherit; outline: none; margin-left: 4px; cursor: pointer; padding: 0 5px; vertical-align: middle; border-radius: 4px;}
 .inner.chat form .btns button:hover{background: #212121}
-.inner.chat form .btns button > i{font-size: 22px}
+.inner.chat form .btns button i{font-size: 22px}
+.inner.chat form .btns button input[type='file']{display: none}
 .inner.chat form .typing{position: absolute; font-size: 12px; color: #aaa; left: 11px; bottom: 16px; transition: .2s}
 .inner.chat form.focus .typing{left: 15px;}
+.inner.chat form .uploaded{width: 43px; height: 43px; background-size: contain; position: absolute; top: 8px; left: 7px; z-index: 1; border-radius: 4px;}
+.inner.chat form.file textarea{padding-left: 51px !important}
+
+@media (max-width: 380px){
+     .inner{ font-size: 13px;}
+}
+@media (max-width: 540px){
+     .inner{padding: 0 15px;}
+     #chat-list .chat-list .content .file{max-width: 100% !important; height: auto}
+     .inner.chat form{left: 15px; width: calc(100% - 30px);}
+}

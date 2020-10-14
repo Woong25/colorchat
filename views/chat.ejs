@@ -5,19 +5,17 @@
     <body>
         <%- include('./header') %>
         <div class="inner chat">
+          <div class="user-scroll" id="user-list">
+            
+          </div>
           <div class="chat-box state">
-            <div class="user-scroll">
-              <ul>
-                <li></li>
-              </ul>
-            </div>
             <div class="chat-scroll">
                 <!-- <div id="new-chat">새로운 채팅 보기 <i class="xi-angle-down-min"></i></div> -->
                 <div id="chat-list">
                     <% for(chat of chats){ %>
                       <% if(chat.user === user){ %>
                         <div class="chat-list mine" style="color: <%= chat.user %>">
-                          <div class="avatar" style="background: <%= chat.user %>"><span>me</spa></div>
+                          <div class="avatar" style="background: <%= chat.user %>"></div>
                           <div class="content">
                             <div class="name">
                               <%= chat.user %><span><%= moment(chat.createdAt).format('h:mm:ss A'); %></span>
@@ -78,9 +76,6 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/overlayscrollbars/1.13.0/js/OverlayScrollbars.min.js" integrity="sha512-5R3ngaUdvyhXkQkIqTf/k+Noq3phjmrqlUQyQYbgfI34Mzcx7vLIIYTy/K1VMHkL33T709kfh5y6R9Xy/Cbt7Q==" crossorigin="anonymous"></script>
         <script src="/socket.io/socket.io.js"></script>
         <script type="text/javascript">
-
-            console.log(`<%=users%>`)
-
             // 웹소켓 스크립트 부분
             var SOCKET_HOST = '<%= process.env.SOCKET_HOST %>' || 'http://localhost:8080';
             var socket = io.connect(SOCKET_HOST+'/chat', {
@@ -93,17 +88,19 @@
             var image = null;
 
             socket.on('join', function (data) {
+              console.log(data);
                 const div = document.createElement('div');
                 div.classList.add('system');
                 div.classList.add('chat-list');
                 const chat = document.createElement('div');
                 const date = document.createElement('span');
                 date.textContent = moment().format('h:mm A')
-                div.textContent = data.chat.replace('<%=user%>', '회원');
+                div.textContent = data._doc.chat.replace('<%=user%>', '회원');
                 //div.appendChild(chat);
                 div.appendChild(date);
                 document.querySelector('#chat-list .os-content').appendChild(div);
                 gotoBottom();
+                inAndOut(data.member, 'join');
             });
             socket.on('exit', function (data) {
                 const div = document.createElement('div');
@@ -112,13 +109,15 @@
                 const chat = document.createElement('div');
                 const date = document.createElement('span');
                 date.textContent = moment().format('h:mm A')
-                div.textContent = data.chat.replace('<%=user%>', '회원');
+                div.textContent = data._doc.chat.replace('<%=user%>', '회원');
                 //div.appendChild(chat);
                 div.appendChild(date);
                 document.querySelector('#chat-list .os-content').appendChild(div);
                 gotoBottom();
+                inAndOut(data.member, 'exit');
             });
             socket.on('chat', function(data){
+              console.log(data)
               const div = document.createElement('div');
               const content = document.createElement('div');
               const avatar = document.createElement('div');
@@ -127,47 +126,47 @@
 
               content.classList.add('content');
               avatar.classList.add('avatar');
-              avatar.style.background = data.user
+              avatar.style.background = data._doc.user
               name.classList.add('name');
-              date.textContent = moment(data.createdAt).format('h:mm A')
+              date.textContent = moment(data._doc.createdAt).format('h:mm A')
 
               div.classList.add('chat-list')
-              if (data.user === '<%=user%>') {
+              if (data._doc.user === '<%=user%>') {
                 div.classList.add('mine');
 
                 // me 텍스트 추가
                 const mine = document.createElement('span');
-                mine.textContent = 'me';
+                //mine.textContent = 'You';
                 avatar.appendChild(mine);
               } else {
                 div.classList.add('other');
               }
 
               
-              name.textContent = data.user;
+              name.textContent = data._doc.user;
               name.appendChild(date);
               content.appendChild(name);
-              if (data.chat) {
+              if (data._doc.chat) {
                 const chat = document.createElement('div');
-                chat.innerHTML = data.chat.replace(/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/|www\.)?([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6}(:[0-9]{1,5})?(\/.*)?$)?/gm, '<a href="//$2" target="_blank">$1$2</a>');
+                chat.innerHTML = data._doc.chat.replace(/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/|www\.)?([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6}(:[0-9]{1,5})?(\/.*)?$)?/gm, '<a href="//$2" target="_blank">$1$2</a>');
                 chat.classList.add('chat')
                 content.appendChild(chat);
               } 
-              if(data.gif) {
+              if(data._doc.gif) {
                 const gif = document.createElement('img');
                 gif.setAttribute('height', '450')
-                gif.src = '/file/<%= room._id %>/' + data.gif;
+                gif.src = '/file/<%= room._id %>/' + data._doc.gif;
                 gif.classList.add('file')
                 content.appendChild(gif);
               }
-              //div.style.color = data.user;
+              //div.style.color = data._doc.user;
               div.appendChild(avatar);
               div.appendChild(content);
               document.querySelector('#chat-list .os-content').appendChild(div);
               const chatHeight = instance.getState("contentScrollSize.height");
               const chatViewHeight = instance.getState("hostSize.height");
               const scrollY = instance.scroll().position.y
-              if (data.user === '<%=user%>' || (scrollY+chatViewHeight) > chatHeight - 50) {
+              if (data._doc.user === '<%=user%>' || (scrollY+chatViewHeight) > chatHeight - 50) {
                 gotoBottom(100)
               }else{
 
@@ -278,6 +277,20 @@
               }
             })
 
+            function inAndOut(data){
+              var title = '<li><strong><%= room.title %> 접속자</strong></li>';
+              var ul = $('<ul></ul>');
+              ul.append(title);
+              for(item of data){
+                if(item.color == '<%=user%>'){
+                  ul.append('<li><span class="avatar" style="background: '+item.color+'"></span>'+item.color+'<span class="you">YOU</span></li>')
+                }else{
+                  ul.append('<li><span class="avatar" style="background: '+item.color+'"></span>'+item.color+'</li>');
+                }
+              }
+              $('.user-scroll').html(ul)
+            }
+
             function gotoBottom(time){
               instance.scroll({ y : "100%" }, time ? time : 0);
             }
@@ -285,7 +298,8 @@
             function commentSubmit(This, e){
               axios.post('/room/<%=room._id%>/chat', {
                 chat: This ? This.chat.value : e.target.value,
-                file: image
+                file: image,
+                sid: socket.id
               })
               .then(function(){
                 var uploaded = document.getElementById('uploaded');

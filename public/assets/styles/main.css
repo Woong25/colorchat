@@ -93,6 +93,9 @@ header ul{float: right}
 #chat-list .chat-list .content .chat{margin-top: 7px; white-space: pre-line; line-height: 22px; color: #ccc}
 #chat-list .chat-list .content .file{max-height: 450px !important; border-radius: 4px; margin-top: 7px; background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKAQMAAAC3/F3+AAAACXBIWXMAAAsTAAALEwEAmpwYAAAABlBMVEXf39////8zI3BgAAAAEUlEQVQIW2Nk38mIjH5wICMAez4Iyz2C/F8AAAAASUVORK5CYII=) repeat;}
 
+#chat-list .chat-list.mine{text-align: right}
+#chat-list .chat-list.mine .avatar{float: right; margin-right: 0; margin-left: 12px;}
+
 .chat-scroll{position: relative;}
 .chat-scroll #new-chat{position: absolute; bottom: 0; left: 0; text-align: center; z-index: 1; width: 100%; margin-bottom: 10px; background: rgb(49, 49, 49, .6); padding: 9px 0; border-radius: 4px; cursor: pointer;}
 .chat-scroll #new-chat i{vertical-align: -3px; font-size: 20px;}
@@ -112,11 +115,23 @@ header ul{float: right}
 .inner.chat form .uploaded{width: 43px; height: 43px; background-size: contain; position: absolute; top: 8px; left: 7px; z-index: 1; border-radius: 4px;}
 .inner.chat form.file textarea{padding-left: 51px !important}
 
-@media (max-width: 380px){
-     .inner{ font-size: 13px;}
+.user-scroll{width: 35%; float: left; margin-top: 15px; border-radius: 4px; padding-right: 15px;}
+.user-scroll ul{padding: 15px; background: #1f1f1f; border-radius: 4px; height: calc(100vh - 93px)}
+.user-scroll ul > li{margin-top: 15px; color: #9e9e9e; line-height: 20px; height: 20px;}
+.user-scroll ul > li:first-child{color: #fff; margin-top: 0; border-bottom: 2px solid #333; padding-bottom: 15px; line-height: normal; height: auto;}
+.user-scroll ul > li > .you{float: right; font-size: 11px;}
+.user-scroll ul > li > .avatar{display: inline-block; width: 20px; height: 20px; margin-right: 7px; vertical-align: top;}
+
+@media (max-width: 767px){
+     .chat-box.state{width: 100%}
+     .user-scroll{display: none}
 }
+
 @media (max-width: 540px){
      .inner{padding: 0 15px;}
      #chat-list .chat-list .content .file{max-width: 100% !important; height: auto}
-     .inner.chat form{left: 15px; width: calc(100% - 30px);}
+}
+
+@media (max-width: 380px){
+     .inner{ font-size: 13px;}
 }

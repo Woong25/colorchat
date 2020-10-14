@@ -76,6 +76,7 @@ router.get('/room/:id', async(req, res, next) => {
         const chats = await Chat.find({ room: room._id }).sort('createdAt');
         let users = await Chat.find({ room: room._id, user: 'system' }).sort('createdAt');
         users = users.filter(item => item.chat.indexOf('입장') > -1)
+
         setTimeout(() => {
             io.of('/room').emit('changeRoom', {roomId: room._id, userCount: rooms[req.params.id] ? rooms[req.params.id].length : 1, max: room.max});
         }, 500);
@@ -106,7 +107,11 @@ router.post('/room/:id/sys', async(req, res, next) => {
             chat
         });
         await sys.save();
-        io.of('/chat').to(req.params.id).emit(req.body.type, sys)
+
+        let member = req.body.users.filter(item => item.roomId === req.params.id);
+
+        console.log(member);
+        io.of('/chat').to(req.params.id).emit(req.body.type, {...sys, member})
         res.send('ok')
     } catch (error) {
         console.error(error);
@@ -161,8 +166,11 @@ router.post('/room/:id/chat', async (req, res, next) => {
             gif: req.body.file
         });
         await chat.save();
-        req.app.get('io').of('/chat').to(req.params.id).emit('chat', chat);
         res.send('ok');
+        req.app.get('io').of('/chat').to(req.params.id).emit('chat', {
+            ...chat,
+            socket: req.body.sid
+        });
     } catch (error) {
         console.error(error);
         next(error);   

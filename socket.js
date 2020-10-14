@@ -3,6 +3,9 @@ const SocketIO = require('socket.io');
 const cookie = require('cookie-signature');
 const cookieParser = require('cookie-parser');
 
+let users = []
+global.users = users;
+
 module.exports = (server, app, sessionMiddleware) => {
     const io = SocketIO(server, { path: '/socket.io' });
     app.set('io', io); // express 변수 저장 [라우터(외부) 에서 io를 사용 하기 위함]
@@ -18,6 +21,14 @@ module.exports = (server, app, sessionMiddleware) => {
         sessionMiddleware(socket.request, socket.request.res, next);
     });
 
+    io.on('connection', (socket) => {
+        const req = socket.request;
+
+        socket.on('disconnect', () => {
+            console.log('소켓 아웃')
+        })
+    });
+
     room.on('connection', (socket) => {
         console.log('room 네임스페이스에 접속');
         socket.on('disconnect', () => {
@@ -30,7 +41,7 @@ module.exports = (server, app, sessionMiddleware) => {
         const req = socket.request;
         const { headers: { referer } } = req;
         const roomId = referer.split('/')[referer.split('/').length -1].replace(/\?.+/, '');
-
+      
         socket.join(roomId); // 방에 접속
 
         let roomUser = socket.to(roomId).adapter.users || []
@@ -46,8 +57,18 @@ module.exports = (server, app, sessionMiddleware) => {
         // });
         const signedCookie = cookie.sign(req.signedCookies['connect.sid'], process.env.COOKIE_SECRET);
         const connectSID = `${signedCookie}`;
+
+        if(req.session?.color){
+            const color = req.session.color
+            let member = [...new Set(users), {color, roomId}];
+
+            users = [...new Map(member.map(item => [item['color'], item])).values()];
+            console.log(users);
+        }
+
         axios.post(`http://localhost:8080/room/${roomId}/sys`, {
-            type: 'join'
+            type: 'join',
+            users
         }, {
             headers: {
                 Cookie: `connect.sid=s%3A${connectSID}`
@@ -77,14 +98,21 @@ module.exports = (server, app, sessionMiddleware) => {
                 //     user: 'system',
                 //     chat: `${req.session.color}님이 퇴장하셨습니다.`
                 // })
+                let member = users.filter(item => item.color != req.session.color)
+                users = member
                 axios.post(`http://localhost:8080/room/${roomId}/sys`, {
-                    type: 'exit'
+                    type: 'exit',
+                    users
                 }, {
                     headers: {
                         Cookie: `connect.sid=s%3A${connectSID}`
                     }
                 })
             }
+        })
+
+        socket.on('dm', (data) => {
+            socket.to(data.target).emit('dm', data);
         })
     })
 };

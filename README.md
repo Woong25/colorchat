@@ -2,7 +2,10 @@
   <img src="https://raw.githubusercontent.com/Woong25/colorchat/main/public/assets/images/favicon.png" />
   <h1 align="center">Color Chat</h1>
 </p>
-<p align="center" style="font-size: 1.2rem;">Anonymous chat using sockets.</p>
+<p align="center" style="font-size: 1.2rem;">
+  This is an anonymous chat room using sockets. <br />
+  So you don't have to refresh.
+</p>
 
 # 👀 Demo
 <img src="https://raw.githubusercontent.com/Woong25/colorchat/main/demo1.png" width="49.5%" /> <img src="https://raw.githubusercontent.com/Woong25/colorchat/main/demo2.png" width="49.5%" />

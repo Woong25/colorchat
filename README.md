@@ -1,4 +1,5 @@
 <p align="center" style="color: #343a40">
+  <img src="https://raw.githubusercontent.com/Woong25/colorchat/main/public/assets/images/favicon.png" />
   <h1 align="center">Color Chat</h1>
 </p>
 <p align="center" style="font-size: 1.2rem;">Anonymous chat using sockets.</p>

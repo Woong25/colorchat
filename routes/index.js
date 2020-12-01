@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/room', (req, res) => {
-    res.render('room', { title: 'GIF 채팅방 생성', me: req.session.color, moment});
+    res.render('room', { title: '채팅방 생성', me: req.session.color, moment});
 });
 
 router.post('/room', async (req, res, next) => {
